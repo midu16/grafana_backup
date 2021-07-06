@@ -97,9 +97,6 @@ def datasources():
 
 if __name__ == '__main__':
     # defining the global variable to be accessible to the upper
-    global ISO_8601_time
-    global compressed_dashboards_name
-    global compressed_datasources_name
     global API_KEY
     global backup_path
     global HOST
@@ -115,11 +112,13 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--version", action='version', version='%(prog)s ' + __version__)
     parser.add_argument("-hs", "--host", type=str, help="Adding the Grafana host url")
     parser.add_argument("-ssl", "--ssl-verify", type=bool, help="SSL verification or not of the Grafana service endpoint", default=False)
+    parser.add_argument("-ac", "--auto-cleanup", type=int, help="Enable or Disable the automatic cleanup of the previous and mention the data backup rendundancy", default=20)
     args = parser.parse_args()
     BACKUP_DIR = args.path
     API_KEY = args.api_key
     HOST = args.host
     ssl = args.ssl_verify
+    cleanup = args.auto_cleanup
     # defining a full loop
     while True:
     # checking each argument exists

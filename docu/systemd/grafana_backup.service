@@ -1,0 +1,14 @@
+[Unit]
+Description=Grafana service Backup
+Wants=network-online.target
+Wants=grafana-server.service
+After=network-online.target
+After=grafana-server.service
+
+[Service]
+User=grafana_backup
+Group=grafana_backup
+ExecStart=/usr/local/bin/grafana_backup --host http://localhost:3000 --api-key 'eyJrIjoiaDhuazQ0aXdiZmFjMFFXWHlGOTVLcnlxMDFyVFlmWnoiLCJuIjoidGVzdCIsImlkIjoxfQ==' --path '/appl/backup/grafana-backup-exports' --ssl-verify False
+
+[Install]
+WantedBy=default.target

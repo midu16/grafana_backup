@@ -2,7 +2,8 @@
 This is the grafana_backup main
 """
 __author__ = 'Mihai IDU'
-__version__ = '0.0.1'
+__version__ = '0.0.7'
+
 import argparse
 import time
 #import datetime
@@ -32,6 +33,9 @@ def periodic(scheduler, interval, action, actionargs=()):
                     (scheduler, interval, action, actionargs))
     action(*actionargs)
 
+# function that performs dynamic cleanup of the pervious backup.
+def DynamicCleanupOfBackup(path):
+    path = path
 
 def make_archive(source, destination, format='zip'):
     base, name = os.path.split(destination)
@@ -52,7 +56,7 @@ def CreateNestedDirectors(path):
 
 def dashboard():
     headers = {'Authorization': 'Bearer %s' % (API_KEY,)}
-    response = requests.get('%s/api/search?query=&' % (HOST,), headers=headers)
+    response = requests.get('%s/api/search?query=&' % (HOST,), headers=headers, verify=bool(ssl))
     response.raise_for_status()
     dashboards = response.json()
 
@@ -61,7 +65,7 @@ def dashboard():
     print("============= Dashboards =============")
     for d in dashboards:
         print ("Saving: " + d['title'])
-        response = requests.get('%s/api/dashboards/%s' % (HOST, d['uri']), headers=headers)
+        response = requests.get('%s/api/dashboards/%s' % (HOST, d['uri']), headers=headers, verify=bool(ssl))
         data = response.json()['dashboard']
         dash = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
         name = data['title'].replace(' ', '_').replace('/', '_').replace(':', '').replace('[', '').replace(']', '').replace('-', '')
@@ -72,7 +76,7 @@ def dashboard():
 
 def datasources():
     headers = {'Authorization': 'Bearer %s' % (API_KEY,)}
-    response = requests.get('%s/api/datasources' % (HOST,), headers=headers)
+    response = requests.get('%s/api/datasources' % (HOST,), headers=headers, verify=bool(ssl))
     response.raise_for_status()
     datasources = response.json()
     #print(datasources)
@@ -82,7 +86,7 @@ def datasources():
     print("============= Datasources =============")
     for ds in datasources:
         print("Saving: "+ ds['name'] + " " + ds['type'])
-        response = requests.get('%s/api/datasources/%s' % (HOST, ds['id']), headers=headers)
+        response = requests.get('%s/api/datasources/%s' % (HOST, ds['id']), headers=headers, verify=bool(ssl))
         data = response.json()
         dash = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
         name = data['name'].replace(' ', '_').replace('/', '_').replace(':', '').replace('[', '').replace(']', '')
@@ -100,6 +104,7 @@ if __name__ == '__main__':
     global backup_path
     global HOST
     global BACKUP_DIR
+    global ssl
 
     #BACKUP_DIR = '/home/midu/PycharmProjects/grafana_backup/custom_classes/grafana-backup-exports'
     #time = datetime.datetime.now()
@@ -109,10 +114,12 @@ if __name__ == '__main__':
     parser.add_argument("-k", "--api-key", type=str, help="")
     parser.add_argument("-v", "--version", action='version', version='%(prog)s ' + __version__)
     parser.add_argument("-hs", "--host", type=str, help="Adding the Grafana host url")
+    parser.add_argument("-ssl", "--ssl-verify", type=bool, help="SSL verification or not of the Grafana service endpoint", default=False)
     args = parser.parse_args()
     BACKUP_DIR = args.path
     API_KEY = args.api_key
     HOST = args.host
+    ssl = args.ssl_verify
     # defining a full loop
     while True:
     # checking each argument exists

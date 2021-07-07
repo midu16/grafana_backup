@@ -110,15 +110,17 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--path", type=str, help="Mention the path where the grafana_backup would manage the backups")
     parser.add_argument("-k", "--api-key", type=str, help="")
     parser.add_argument("-v", "--version", action='version', version='%(prog)s ' + __version__)
-    parser.add_argument("-hs", "--host", type=str, help="Adding the Grafana host url")
-    parser.add_argument("-ssl", "--ssl-verify", type=bool, help="SSL verification or not of the Grafana service endpoint", default=False)
-    parser.add_argument("-ac", "--auto-cleanup", type=int, help="Enable or Disable the automatic cleanup of the previous and mention the data backup rendundancy", default=20)
+    parser.add_argument("-hs", "--host", type=str, help="Adding the Grafana host url.")
+    parser.add_argument("-ssl", "--ssl-verify", type=bool, help="SSL verification or not of the Grafana service endpoint.", default=False)
+    parser.add_argument("-ac", "--auto-cleanup", type=int, help="Enable or Disable the automatic cleanup of the previous and mention the data backup rendundancy.", default=20)
+    parser.add_argument("-days", "--backup-days", type=int, help="Number of days between consecutive the backups.", default=7.0)
     args = parser.parse_args()
     BACKUP_DIR = args.path
     API_KEY = args.api_key
     HOST = args.host
     ssl = args.ssl_verify
     cleanup = args.auto_cleanup
+    backup_days = args.backup_days
     # defining a full loop
     while True:
     # checking each argument exists
@@ -127,7 +129,7 @@ if __name__ == '__main__':
             datasources()
             CreateNestedDirectors(str(BACKUP_DIR))
             make_archive(DIR, str(BACKUP_DIR))
-            time.sleep(7.0 * 24.0 * 60.0 * 60.0) # 7 x 24h converted to seconds.
+            time.sleep(int(backup_days) * 24.0 * 60.0 * 60.0) # 7 x 24h converted to seconds.
         elif args.path is None and args.api_key is None:
             print("--path and --api-key has not been added!")
             print("----------------------------------------")

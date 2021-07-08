@@ -12,11 +12,22 @@ import json
 import requests
 import os
 import shutil
+from git import Repo
+import socket
 
 # Defining global static variables
-DIR = '/tmp/grafana-exports/'
+"""
+DIR = /tmp/grafana-exports-desktop-localdomain/ directory this would be transparent for the localhost backup. Valueble for the remote git backup.
+PATH_OF_GIT_REPO = /tmp/grafana-exports-desktop-localdomain/.git
+COMMIT_MESSAGE = desktop-localdomain the commit message it would be only the hostname, therefore it would be easy to track on the github repo
+in the scenario that there are multiple GrafanaWEBUI to be commited, Each site/environmnet would be tracked based on the commit message.
+
+"""
+DIR = '/tmp/grafana-exports-' + str(socket.gethostname()) + '/'
 DIR_DASH = DIR + 'grafana-dashboards/'
 DIR_DATA = DIR + 'grafana-datasources/'
+PATH_OF_GIT_REPO = DIR + '.git'
+COMMIT_MESSAGE = socket.gethostname()
 
 def CreateNestedDirectors(path):
     path = path + time.strftime("-%Y%m%d-%H:%M:%S")
@@ -36,6 +47,16 @@ def periodic(scheduler, interval, action, actionargs=()):
 # function that performs dynamic cleanup of the pervious backup.
 def DynamicCleanupOfBackup(path):
     path = path
+
+def GitPush():
+    try:
+        repo = Repo(PATH_OF_GIT_REPO)
+        repo.git.add(update=True)
+        repo.index.commit(str(COMMIT_MESSAGE))
+        origin = repo.remote(name='origin')
+        origin.push()
+    except:
+        print('Some error occured while pushing the code')
 
 def make_archive(source, destination, format='zip'):
     base, name = os.path.split(destination)

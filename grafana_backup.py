@@ -5,6 +5,7 @@ __author__ = 'Mihai IDU'
 __version__ = '0.0.7'
 
 import argparse
+import datetime
 import time
 #import datetime
 import errno
@@ -29,14 +30,8 @@ DIR_DATA = DIR + 'grafana-datasources/'
 PATH_OF_GIT_REPO = DIR + '.git'
 COMMIT_MESSAGE = socket.gethostname()
 
-def CreateNestedDirectors(path):
-    path = path + time.strftime("-%Y%m%d-%H:%M:%S")
-    if not os.path.exists(path):
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
+
+
 
 # function to trigger a period action.
 def periodic(scheduler, interval, action, actionargs=()):
@@ -44,10 +39,19 @@ def periodic(scheduler, interval, action, actionargs=()):
                     (scheduler, interval, action, actionargs))
     action(*actionargs)
 
-# function that performs dynamic cleanup of the pervious backup.
-def DynamicCleanupOfBackup(path):
-    path = path
+"""
+Function that performs dynamic cleanup of the pervious backup.
+"""
+def DynamicCleanupOfBackup(path_to_file, data_redundancy):
+    t = os.path.getmtime(path_to_file)
+    # return the last modification time of the file : datetime.datetime.fromtimestamp(t)
+    if datetime.datetime.fromtimestamp(t) > data_redundancy:
 
+        return 0
+
+"""
+Function that backups the data to the specific git repository.
+"""
 def GitPush():
     try:
         repo = Repo(PATH_OF_GIT_REPO)
@@ -58,6 +62,9 @@ def GitPush():
     except:
         print('Some error occured while pushing the code')
 
+"""
+Function that performs the archive file of the directory, adds the date and time.
+"""
 def make_archive(source, destination, format='zip'):
     base, name = os.path.split(destination)
     archive_from = os.path.dirname(source)
@@ -66,6 +73,9 @@ def make_archive(source, destination, format='zip'):
     shutil.make_archive(name, format, archive_from)
     shutil.move('%s.%s' % (name, format), destination + '/grafana-backup-exports'+ time.strftime("-%Y%m%d-%H:%M:%S"))
 
+"""
+This function is creating the backup directory, creates the full path no mather if the full nested exists or not.
+"""
 def CreateNestedDirectors(path):
     path = path
     if not os.path.exists(path):
@@ -74,7 +84,9 @@ def CreateNestedDirectors(path):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
-
+"""
+This function is exporting the Grafana dashboard json files.
+"""
 def dashboard():
     headers = {'Authorization': 'Bearer %s' % (API_KEY,)}
     response = requests.get('%s/api/search?query=&' % (HOST,), headers=headers, verify=bool(ssl))
@@ -95,6 +107,9 @@ def dashboard():
         tmp.write('\n')
         tmp.close()
 
+"""
+This function is exporting the Grafana datasources json files.
+"""
 def datasources():
     headers = {'Authorization': 'Bearer %s' % (API_KEY,)}
     response = requests.get('%s/api/datasources' % (HOST,), headers=headers, verify=bool(ssl))

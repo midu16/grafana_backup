@@ -2,3 +2,9 @@ argparse
 dashboardApi
 commons
 shutil
+gitpython
+json
+requests
+errno
+GitPython
+pyinstaller
